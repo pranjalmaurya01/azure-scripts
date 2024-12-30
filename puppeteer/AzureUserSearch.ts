@@ -1,5 +1,18 @@
-import { Page } from 'puppeteer';
-import AzureLogin from './AzureLogin';
+import { Frame, Page } from 'puppeteer';
+
+export async function waitForSearchLoading(contentFrame: Frame) {
+  await new Promise((resolve) => {
+    const interval = setInterval(async () => {
+      const text = await contentFrame
+        .waitForSelector('div[aria-live="polite"][role="status"] div')
+        .then((e) => e?.evaluate((el) => el.textContent));
+      if (text === 'Completed fetching users') {
+        resolve('');
+        clearInterval(interval);
+      }
+    }, 500);
+  });
+}
 
 export default async function AzureUserSearch(page: Page, email: string) {
   if (
@@ -9,8 +22,6 @@ export default async function AzureUserSearch(page: Page, email: string) {
     await page.goto(
       'https://portal.azure.com/#view/Microsoft_AAD_UsersAndTenants/UserManagementMenuBlade/~/AllUsers'
     );
-  await page.waitForNetworkIdle();
-  await AzureLogin(page);
 
   const iframeHandle = await page.waitForSelector('iframe#_react_frame_0');
   if (!iframeHandle) {
@@ -22,6 +33,7 @@ export default async function AzureUserSearch(page: Page, email: string) {
     throw new Error('iframe#_react_frame_0 contentFrame : 404');
   }
 
+  await waitForSearchLoading(contentFrame);
   const searchBox = await contentFrame.waitForSelector('#SearchBox4');
   if (!searchBox) {
     throw new Error('Search box : 404');

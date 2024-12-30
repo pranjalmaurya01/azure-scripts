@@ -2,7 +2,7 @@ import puppeteer from 'puppeteer';
 import AzureLogin from './AzureLogin';
 import CheckInviteStatus from './CheckInviteStatus';
 
-const emails = [];
+const emails = ['principal@rbkglobalschool.org'];
 
 (async () => {
   const browser = await puppeteer.launch({
@@ -19,7 +19,7 @@ const emails = [];
   await page.waitForNetworkIdle();
   await AzureLogin(page);
 
-  await CheckInviteStatus(page, emails);
+  await CheckInviteStatus(page, emails, true);
 
   await new Promise((resolve) => setTimeout(() => resolve(''), 1000000));
   await browser.close();

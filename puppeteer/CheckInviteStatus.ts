@@ -1,25 +1,35 @@
 import { Page } from 'puppeteer';
-import AzureUserSearch from './AzureUserSearch';
+import AzureUserSearch, { waitForSearchLoading } from './AzureUserSearch';
+import ResendInvite from './ResendInvite';
 
-export default async function CheckInviteStatus(page: Page, emails: string[]) {
+export default async function CheckInviteStatus(
+  page: Page,
+  emails: string[],
+  resendInvitation?: boolean
+) {
   for (const email of emails) {
-    const { contentFrame, searchBox } = await AzureUserSearch(page, email);
-    const resultDiv = await contentFrame.waitForSelector(
-      'div[data-testid="resultMessage"]'
-    );
-    if (!resultDiv) {
-      throw new Error('Result : 404');
-    }
+    const { contentFrame } = await AzureUserSearch(page, email);
 
-    const noOfResults = ((await resultDiv.evaluate((el) => el.textContent)) ||
-      ' ')[0];
+    await waitForSearchLoading(contentFrame);
+
+    const noOfResults = ((await contentFrame
+      .$('div[data-testid="resultMessage"]')
+      .then((e) => e?.evaluate((el) => el.textContent))) || ' ')[0];
 
     if (noOfResults == '1') {
       const invitationState = await contentFrame
         .$('div[data-automation-key="externalUserState"]')
         .then((e) => e?.evaluate((el) => el.textContent));
 
-      console.log(`${email} : ${invitationState}`);
+      if (resendInvitation) {
+        if (invitationState === 'Pending acceptance') {
+          await ResendInvite(page, contentFrame);
+        } else {
+          console.log(`${email} :Can't Resend Invite : ${invitationState}`);
+        }
+      } else {
+        console.log(`${email} : ${invitationState}`);
+      }
     } else if (noOfResults == '0') {
       console.warn(`${email} : 404`);
     } else {
@@ -27,9 +37,7 @@ export default async function CheckInviteStatus(page: Page, emails: string[]) {
     }
 
     // set search input empty
-    await contentFrame
-      .$('button[aria-label="Clear text"]')
-      .then((e) => e?.click());
+    await page.$('button[aria-label="Clear text"]')?.then((e) => e?.click());
   }
 
   console.log('CheckInviteStatus : 200');
