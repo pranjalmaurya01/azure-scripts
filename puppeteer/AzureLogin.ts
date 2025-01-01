@@ -2,7 +2,7 @@ import { cleanEnv, str } from 'envalid';
 import { Page } from 'puppeteer';
 
 const env = cleanEnv(process.env, {
-  AZURE_USERNAME: str(),
+  AZURE_ADMIN_USERNAME: str(),
   AZURE_PASSWORD: str(),
 });
 
@@ -26,7 +26,7 @@ export default async function AzureLogin(page: Page) {
     if (!emailField) {
       throw new Error('Email : 404');
     }
-    await emailField.type(env.AZURE_USERNAME);
+    await emailField.type(env.AZURE_ADMIN_USERNAME);
 
     // Step 2: Click "Next" button
     const nextButton = await Promise.race([

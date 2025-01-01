@@ -1,4 +1,5 @@
 import { Frame, Page } from 'puppeteer';
+import { waitFor } from './utils';
 
 export default async function ResendInvite(page: Page, contentFrame: Frame) {
   await contentFrame.click(
@@ -18,6 +19,7 @@ export default async function ResendInvite(page: Page, contentFrame: Frame) {
 
   await resendBtn?.click();
   // TODO: complete resend
+  await waitFor(10000);
 
   await page.goBack();
 }

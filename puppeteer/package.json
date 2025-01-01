@@ -8,7 +8,8 @@
     "bun": ">=1.1.42"
   },
   "scripts": {
-    "dev": "bun index.ts"
+    "dev": "bun index.ts",
+    "check_azure_dev_removal": "bun ServiceNow/UnassignedTasks/AzureGTIDeviceRemoval.ts"
   },
   "keywords": [],
   "author": "",
